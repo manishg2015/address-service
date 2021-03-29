@@ -76,8 +76,7 @@ jobs:
           push: true
           context: .
           tags: myjavaacr.azurecr.io/address-service:${{ github.run_id }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
 
       - name: Non Master Branch Build and push Docker images
         if: success() && github.ref != 'refs/heads/master'
@@ -86,13 +85,7 @@ jobs:
           push: true
           context: .
           tags: myjavaacr.azurecr.io/address-service-dev:${{ github.run_id}}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
 
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
 
 
