@@ -65,3 +65,4 @@
             push: true
             context: .
             tags: myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
+
