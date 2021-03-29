@@ -25,13 +25,14 @@
           run: |
             echo "GITHUB_USERNAME=$GITHUB_USERNAME" >> $GITHUB_ENV
             echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+            echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
         - name: echo the env value
           id: step_two
           run: |
             echo "GITHUB_USERNAME is ${{ env.GITHUB_USERNAME }}"
             echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
-
+            echo "RELEASE_VERSION is ${{ env.RELEASE_VERSION }}"
         - name: Build with Maven
           if: success()
           run: mvn -B package --file pom.xml
@@ -63,4 +64,4 @@
           with:
             push: true
             context: .
-            tags: myjavaacr.azurecr.io/address-service:${{ github.event.release.tag_name }}
+            tags: myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
