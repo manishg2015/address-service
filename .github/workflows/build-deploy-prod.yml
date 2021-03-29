@@ -63,4 +63,4 @@
           with:
             push: true
             context: .
-            tags: myjavaacr.azurecr.io/address-service:${{ github.event.release.tag_name }}
+            tags: myjavaacr.azurecr.io/address-service:${{ github.ref }}
