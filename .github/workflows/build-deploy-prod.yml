@@ -33,6 +33,7 @@
             echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
 
         - name: Build with Maven
+          if: success()
           run: mvn -B package --file pom.xml
 
         - name: Docker Setup Buildx
@@ -57,9 +58,9 @@
             login-server: myjavaacr.azurecr.io
 
         - name: Master Branch Build and push Docker images
-          if: success() && github.ref == 'refs/heads/master'
+          if: success() 
           uses: docker/build-push-action@v2.3.0
           with:
             push: true
             context: .
-            tags: myjavaacr.azurecr.io/address-service:${{github.ref}}
+            tags: myjavaacr.azurecr.io/address-service:${{ github.event.release.tag_name }}
