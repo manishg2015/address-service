@@ -71,9 +71,44 @@
         - build_and_publish
       runs-on: ubuntu-latest
       environment: preprod
-
+      steps:
+        - uses: Azure/aks-set-context@v1
+          with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            cluster-name: contoso
+            resource-group: contoso-rg
+            
+        - uses: Azure/k8s-deploy@v1.2
+          with:
+            manifests: |
+              aks/preprod/deployment.yaml
+              aks/preprod/service.yaml
+              aks/preprod/ingress.yaml
+              aks/preprod/hpa-deployment.yaml
+              
+            images: |
+              myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
+            
+        
     deploy_to_prod:
       needs:
         - deploy_to_preprod
       runs-on: ubuntu-latest
       environment: prod
+      steps:
+        - uses: Azure/aks-set-context@v1
+          with:
+            creds: '${{ secrets.AZURE_CREDENTIALS }}'
+            cluster-name: contoso
+            resource-group: contoso-rg
+            
+        - uses: Azure/k8s-deploy@v1.2
+          with:
+            manifests: |
+              aks/prod/deployment.yaml
+              aks/prod/service.yaml
+              aks/prod/ingress.yaml
+              aks/prod/hpa-deployment.yaml
+              
+            images: |
+              myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
