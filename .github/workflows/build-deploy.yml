@@ -7,11 +7,15 @@ on:
   push:
     branches:
       - master
-      - release
+      - 'releases/**'
       - develop
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches:
       - master
+    paths-ignore:
+      - '**.md'
 env:
   GITHUB_USERNAME : ${{ secrets.REPO_ACCESS_NAME}}
   GITHUB_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
