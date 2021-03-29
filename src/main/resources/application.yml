@@ -11,6 +11,11 @@ spring:
     # Application name
     name: address-service
 
+app:
+  secret:
+    key1:${key1:"secret1"}
+    key2:${key2:"secret2"}
+
 
 logging:
   level:

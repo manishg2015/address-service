@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hpa-__deploymentName__
-  namespace: __namespace__
+  name: hpa-address-service-dev
+  namespace: myjava-dev
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: __deploymentName__
+    name: address-service-dev
   minReplicas: 1
   maxReplicas: 3
   metrics:

@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: __deploymentName__
-  namespace: __namespace__
+  name: address-service-dev
+  namespace: myjava-dev
 spec:
-  replicas: __replicaCount__            # no of replicas
+  replicas: 1            # no of replicas
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -12,21 +12,21 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: __deploymentName__
+      app: address-service-dev
   template:
     metadata:
       name: app                        # NEW
       labels:
-        app: __deploymentName__
+        app: address-service-dev
       annotations:
         # container name
-        ad.datadoghq.com/__deploymentName__.check_names: '["prometheus"]'
-        ad.datadoghq.com/__deploymentName__.init_configs: '[{}]'
-        ad.datadoghq.com/__deploymentName__.instances: |
+        ad.datadoghq.com/address-service-dev.check_names: '["prometheus"]'
+        ad.datadoghq.com/address-service-dev.init_configs: '[{}]'
+        ad.datadoghq.com/address-service-dev.instances: |
           [
             {
               "prometheus_url": "http://%%host%%:8080/actuator/prometheus",
-              "namespace": __deploymentName__,
+              "namespace": address-service-dev,
               "metrics": ["*"],
               "health_service_check": true,
               "max_returned_metrics": 2000
@@ -38,10 +38,10 @@ spec:
     spec:
       serviceAccountName: default
       imagePullSecrets:
-        - name: athena-acr-secret
+        - name: myjava-acr-secret
       containers:
-        - name: __deploymentName__
-          image: athenaacr.azurecr.io/contractrates-demo:__imageTag__
+        - name: address-service-dev
+          image: myjavaacr.azurecr.io/address-service:${{ github.run_id }}
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -67,9 +67,7 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
             - name: logLevel
-              value: __logLevel__
-            - name: jwksServiceHost
-              value: __jwksServiceHost__
+              value: INFO
             - name: databaseName
               value: __cosmosdb__
 #            - name: k8s_server_url
