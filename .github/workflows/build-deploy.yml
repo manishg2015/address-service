@@ -13,9 +13,9 @@ on:
     branches:
       - master
 env:
-  REPO_ACCESS_NAME : ${{ secrets.REPO_ACCESS_NAME}}
-  REPO_ACCESS_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # scope this repo
+  GITHUB_USERNAME : ${{ secrets.REPO_ACCESS_NAME}}
+  GITHUB_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
+  #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # scope this repo
 
 jobs:
   build:
@@ -28,15 +28,15 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
     - name: Set the env value
       id: step_one
       run: |
-        echo "REPO_ACCESS_NAME=$REPO_ACCESS_NAME" >> $GITHUB_ENV
-        echo "REPO_ACCESS_TOKEN=$REPO_ACCESS_TOKEN" >> $GITHUB_ENV
+        echo "GITHUB_USERNAME=$GITHUB_USERNAME" >> $GITHUB_ENV
+        echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
     - name: echo the env value
       id: step_two
       run: |
-        echo "REPO_ACCESS_NAME is ${{ env.REPO_ACCESS_NAME }}"
-        echo "REPO_ACCESS_TOKEN is ${{ env.REPO_ACCESS_TOKEN }}"
+        echo "GITHUB_USERNAME is ${{ env.GITHUB_USERNAME }}"
+        echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
