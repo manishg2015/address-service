@@ -32,15 +32,59 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
+        
     - name: Set the env value
       id: step_one
       run: |
         echo "GITHUB_USERNAME=$GITHUB_USERNAME" >> $GITHUB_ENV
         echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+        
     - name: echo the env value
       id: step_two
       run: |
         echo "GITHUB_USERNAME is ${{ env.GITHUB_USERNAME }}"
         echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
+        
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+      
+    - name: Docker Setup Buildx
+      uses: docker/setup-buildx-action@v1.1.1
+      
+    - name: Azure Container Registry Login
+      uses: Azure/docker-login@v1
+      with:
+        # Container registry username
+        username: ${{ secrets.ACR_USER_NAME}}
+        # Container registry password
+        password: ${{ secrets.ACR_ACCESS_KEY}}
+        # Container registry server url
+        login-server: myjavaacr.azurecr.io
+        
+    - name: Build and push Docker images
+      if: success() && github.ref == 'refs/heads/master'
+      uses: docker/build-push-action@v2.3.0
+      with:
+        push: true
+        context: .
+        tags: myjavaacr.azurecr.io/address-service:${{ github.run_id }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        
+    - name: Build and push Docker images
+      if: success() && github.ref != 'refs/heads/master'
+      uses: docker/build-push-action@v2.3.0
+      with:
+        push: true
+        context: .
+        tags: myjavaacr.azurecr.io/address-service-dev:${{ github.run_id}}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        
+    - name: Move cache
+       run: | 
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+        
+        
+    
