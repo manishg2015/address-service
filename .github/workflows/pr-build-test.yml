@@ -1,0 +1,37 @@
+name: PR Build and Test
+on:
+  pull_request:
+    branches:
+      - master
+      - 'releases/**'
+    paths-ignore:
+      - '**.md'
+env:
+  GITHUB_USERNAME : ${{ secrets.REPO_ACCESS_NAME}}
+  GITHUB_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
+  #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # scope this repo
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Set the env value
+        id: step_one
+        run: |
+          echo "GITHUB_USERNAME=$GITHUB_USERNAME" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+
+      - name: echo the env value
+        id: step_two
+        run: |
+          echo "GITHUB_USERNAME is ${{ env.GITHUB_USERNAME }}"
+          echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
