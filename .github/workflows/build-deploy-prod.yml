@@ -1,0 +1,65 @@
+  name: Build and Deploy to Prod
+  on:
+    push:
+      tags:
+        - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+  env:
+    GITHUB_USERNAME : ${{ secrets.REPO_ACCESS_NAME}}
+    GITHUB_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
+    #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # scope this repo
+
+  jobs:
+    build_and_publish:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v2
+        - name: Set up JDK 11
+          uses: actions/setup-java@v1
+          with:
+            java-version: 11
+
+        - name: Set the env value
+          id: step_one
+          run: |
+            echo "GITHUB_USERNAME=$GITHUB_USERNAME" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> $GITHUB_ENV
+
+        - name: echo the env value
+          id: step_two
+          run: |
+            echo "GITHUB_USERNAME is ${{ env.GITHUB_USERNAME }}"
+            echo "GITHUB_TOKEN is ${{ env.GITHUB_TOKEN }}"
+
+        - name: Build with Maven
+          run: mvn -B package --file pom.xml
+
+        - name: Docker Setup Buildx
+          uses: docker/setup-buildx-action@v1.1.1
+
+        - name: Cache Docker layers
+          uses: actions/cache@v2
+          with:
+            path: /tmp/.buildx-cache
+            key: ${{ runner.os }}-buildx-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-buildx-
+
+        - name: Azure Container Registry Login
+          uses: Azure/docker-login@v1
+          with:
+            # Container registry username
+            username: ${{ secrets.ACR_USER_NAME}}
+            # Container registry password
+            password: ${{ secrets.ACR_ACCESS_KEY}}
+            # Container registry server url
+            login-server: myjavaacr.azurecr.io
+
+        - name: Master Branch Build and push Docker images
+          if: success() && github.ref == 'refs/heads/master'
+          uses: docker/build-push-action@v2.3.0
+          with:
+            push: true
+            context: .
+            tags: myjavaacr.azurecr.io/address-service:${{github.ref}}
