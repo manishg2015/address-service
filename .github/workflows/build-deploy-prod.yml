@@ -66,3 +66,14 @@
             context: .
             tags: myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
 
+    deploy_to_preprod:
+      needs:
+        - build_and_publish
+      runs-on: ubuntu-latest
+      environment: preprod
+
+    deploy_to_prod:
+      needs:
+        - deploy_to_preprod
+      runs-on: ubuntu-latest
+      environment: prod
