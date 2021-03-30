@@ -76,12 +76,28 @@
       runs-on: ubuntu-latest
       environment: prod
       env:
-        AKS_DEPLOY_NAMESPACE:
+        AKS_DEPLOY_NAMESPACE: myjava-prod
+        AZURE_VAULT_USER : ${{ secrets.AZURE_VAULT_USER}}
+        AZURE_VAULT_PWD: ${{ secrets.AZURE_VAULT_PWD}}
       steps:
         - name: Set the env value
           id: step_one
           run: |
             echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+        - uses: Azure/login@v1
+          with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+        - uses: Azure/get-keyvault-secrets@v1
+          with:
+            keyvault: "myjavaazurevault" # name of key vault in Azure portal
+            secrets: 'address-service-prod-key1, address-service-prod-key2' # comma separated list of secret keys to fetch from key vault
+          id: myGetSecretAction # ID for secrets that you will reference
+
+          # The key vault values are later referenced like
+          # ${{ steps.myGetSecretAction.outputs.address-service-prod-key1 }}
+          # ${{ steps.myGetSecretAction.outputs.address-service-prod-key2 }}
 
           # Set the target Azure Kubernetes Service (AKS) cluster.
         - uses: Azure/aks-set-context@v1

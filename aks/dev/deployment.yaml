@@ -41,7 +41,7 @@ spec:
         - name: myjavaacr-secret
       containers:
         - name: address-service-dev
-          image: myjavaacr.azurecr.io/address-service:${{ github.run_id }}
+          image: myjavaacr.azurecr.io/address-service:latest
           imagePullPolicy: IfNotPresent
           securityContext:
             runAsNonRoot: true
@@ -58,26 +58,31 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Xms512m -Xmx1048m"
-            - name: DATADOG_ENDPOINT
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: DD_AGENT_HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+#            - name: DATADOG_ENDPOINT
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.hostIP
+#            - name: DD_AGENT_HOST
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.hostIP
             - name: logLevel
               value: INFO
             - name: databaseName
-              value: __cosmosdb__
+              value: cosmosdb
 #            - name: k8s_server_url
 #              value: vault:athena-kv/data/kubernetes/pricing-dev-west-1/server#server
-            - name: databaseAccessKey
-              value: __databaseAccessKey__
-            - name: cosmosDatabaseUri
-              value: __cosmosDatabaseUri__
-            - name: maxpoolsize
-              value: '1'
+#            - name: databaseAccessKey
+#              value: __databaseAccessKey__
+#            - name: cosmosDatabaseUri
+#              value: __cosmosDatabaseUri__
+#            - name: maxpoolsize
+#              value: '1'
+            - name: KEY1
+              valueFrom:
+            - name: KEY2
+              valueFrom:
+
           readinessProbe:
             httpGet:
               port: 8080

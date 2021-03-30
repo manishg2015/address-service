@@ -13,8 +13,8 @@ spring:
 
 app:
   secret:
-    key1:${key1:"secret1"}
-    key2:${key2:"secret2"}
+    key1:${KEY1:"secret1"}
+    key2:${KEY2:"secret2"}
 
 
 logging:
