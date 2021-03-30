@@ -1,4 +1,4 @@
-  name: Build and Deploy to Prod
+  name: Build and Deploy to Prod On Release Tag Push
   on:
     push:
       tags:
@@ -8,6 +8,10 @@
     GITHUB_USERNAME : ${{ secrets.REPO_ACCESS_NAME}}
     GITHUB_TOKEN : ${{ secrets.REPO_ACCESS_TOKEN}} # scope all repos
     #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # scope this repo
+    ACR_REGISTRY_NAME: myjavaacr.azurecr.io
+    AKS_CLUSTER_NAME: myjavak8s
+    AKS_CLUSTER_RESOURCE_GROUP: AKS-DEMO-RG
+    ACR_PULL_SECRET : myjavaacr-secret
 
   jobs:
     build_and_publish:
@@ -56,7 +60,7 @@
             # Container registry password
             password: ${{ secrets.ACR_ACCESS_KEY}}
             # Container registry server url
-            login-server: myjavaacr.azurecr.io
+            login-server: ${{ env.ACR_REGISTRY_NAME }}
 
         - name: Master Branch Build and push Docker images
           if: success() 
@@ -64,44 +68,43 @@
           with:
             push: true
             context: .
-            tags: myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
+            tags: ${{ env.ACR_REGISTRY_NAME }}/address-service:${{ env.RELEASE_VERSION }}
 
-    deploy_to_preprod:
+    deploy_to_prod:
       needs:
         - build_and_publish
       runs-on: ubuntu-latest
-      environment: preprod
-      steps:
-        - uses: Azure/aks-set-context@v1
-          with:
-            creds: '${{ secrets.AZURE_CREDENTIALS }}'
-            cluster-name: contoso
-            resource-group: contoso-rg
-            
-        - uses: Azure/k8s-deploy@v1.2
-          with:
-            manifests: |
-              aks/preprod/deployment.yaml
-              aks/preprod/service.yaml
-              aks/preprod/ingress.yaml
-              aks/preprod/hpa-deployment.yaml
-              
-            images: |
-              myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
-            
-        
-    deploy_to_prod:
-      needs:
-        - deploy_to_preprod
-      runs-on: ubuntu-latest
       environment: prod
+      env:
+        AKS_DEPLOY_NAMESPACE:
       steps:
+        - name: Set the env value
+          id: step_one
+          run: |
+            echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+          # Set the target Azure Kubernetes Service (AKS) cluster.
         - uses: Azure/aks-set-context@v1
           with:
-            creds: '${{ secrets.AZURE_CREDENTIALS }}'
-            cluster-name: contoso
-            resource-group: contoso-rg
-            
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+            cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+            resource-group: ${{ env.AKS_CLUSTER_RESOURCE_GROUP }}
+
+        # Create namespace if doesn't exist
+        - run: |
+            kubectl create namespace ${{ env.AKS_DEPLOY_NAMESPACE }} --dry-run -o json | kubectl apply -f -
+
+        # Create image pull secret for ACR
+        - uses: azure/k8s-create-secret@v1
+          with:
+            container-registry-url: ${{ env.ACR_REGISTRY_NAME }}
+            container-registry-username: ${{ secrets.ACR_USER_NAME}}
+            container-registry-password: ${{ secrets.ACR_ACCESS_KEY}}
+            secret-name: ${{ env.ACR_PULL_SECRET }}
+            namespace: ${{ env.AKS_DEPLOY_NAMESPACE }}
+            force: true
+
+          # Deploy app to AKS
         - uses: Azure/k8s-deploy@v1.2
           with:
             manifests: |
@@ -112,3 +115,8 @@
               
             images: |
               myjavaacr.azurecr.io/address-service:${{ env.RELEASE_VERSION }}
+            imagepullsecrets: |
+              ${{ env.ACR_PULL_SECRET }}
+            namespace: ${{ env.AKS_DEPLOY_NAMESPACE }}
+
+        

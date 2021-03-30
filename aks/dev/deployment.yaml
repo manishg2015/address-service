@@ -38,7 +38,7 @@ spec:
     spec:
       serviceAccountName: default
       imagePullSecrets:
-        - name: myjava-acr-secret
+        - name: myjavaacr-secret
       containers:
         - name: address-service-dev
           image: myjavaacr.azurecr.io/address-service:${{ github.run_id }}
