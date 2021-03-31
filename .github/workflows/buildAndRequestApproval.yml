@@ -1,0 +1,57 @@
+#name: Build and Test
+#
+#on:
+#  push:
+#    branches:
+#      - master
+#env:
+#  CONTAINER_REGISTRY: ${{ secrets.REGISTRY_USERNAME }}.azurecr.io   # set secret with Container Registry name
+#jobs:
+#  build:
+#    #needs: provision-webapp
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: Azure authentication
+#        uses: azure/login@v1
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS_APP  }}
+#      - name: ACR authentication
+#        uses: azure/docker-login@v1
+#        with:
+#          login-server: ${{ env.CONTAINER_REGISTRY }}
+#          username: ${{ secrets.REGISTRY_USERNAME }}
+#          password: ${{ secrets.REGISTRY_PASSWORD }}
+#      - name: Docker Build & Push to ACR
+#        run: |
+#          docker build . -t ${{ env.CONTAINER_REGISTRY }}/nodejsapp:${{ github.sha }}
+#          docker push ${{ env.CONTAINER_REGISTRY }}/nodejsapp:${{ github.sha }}
+#      - name: Run tests
+#        run: echo test execution
+#  request-approval:
+#    runs-on: windows-latest
+#    steps:
+#      - name: Login via Az module
+#        uses: azure/login@v1.1
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS }}
+#          enable-AzPSSession: true
+#      - name: Connect to Logic App
+#        id: GetUrl
+#        uses: azure/powershell@v1
+#        with:
+#          inlineScript: |
+#            $url = (Get-AzLogicAppTriggerCallbackUrl -ResourceGroupName actionsdemo -Name ApprovalDemo -TriggerName manual).Value
+#            if ($url)
+#            {
+#            echo "::add-mask::$url"
+#            echo "::set-output name=LogicAppUrl::$url"
+#            }
+#          azPSVersion: '3.1.0'
+#      - name: Request for approval
+#        uses: bcstestit/invoke-Azure-Logic-App@v3
+#        with:
+#          url: ${{ steps.GetUrl.outputs.LogicAppUrl }}
+#          approvers: ${{ secrets.APPROVERS }}
+#          instructions: "Verify the test results and functionality on a dummy environment"
+#          repo-token: ${{ secrets.REPOTOKEN }}

@@ -1,0 +1,22 @@
+#name: Deploy to Production
+#on:
+#  repository_dispatch:
+#    types : "start prod deployment"
+#env:
+#  AZURE_RESOURCE_GROUP: Gopi-RG  # set this to your Azure Resource group's name
+#  AZURE_WEBAPP_NAME: nodejsapp-container   # set this to your application's name
+#  AZURE_APP_PLAN: ActionPlan  # set this to your App service plan's name - Needed only if you are provisioning the app in the workflow
+#  CONTAINER_REGISTRY: ${{ secrets.REGISTRY_USERNAME }}.azurecr.io   # set secret with Container Registry name
+#
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Azure authentication
+#        uses: azure/login@v1
+#        with:
+#          creds: ${{ secrets.AZURE_CREDENTIALS_APP  }}
+#      - uses: azure/webapps-deploy@v2
+#        with:
+#          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+#          images: ${{ env.CONTAINER_REGISTRY }}/nodejsapp:${{ github.sha }}
